@@ -1,6 +1,8 @@
 using Newtonsoft.Json.Linq;
 using OMDb_API_Showcase.Properties;
 using System.Runtime.CompilerServices;
+using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace OMDb_API_Showcase
 {
@@ -10,6 +12,9 @@ namespace OMDb_API_Showcase
 
         public Form1()
         {
+            MaximizeBox = false;
+            MinimizeBox = false;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             InitializeComponent();
         }
 
@@ -20,6 +25,41 @@ namespace OMDb_API_Showcase
             {
                 label.Left = (ClientSize.Width - label.Size.Width) / 2;
             }
+        }
+
+        private string TextFormatting(string text, int max)
+        {
+            StringBuilder formattedText = new StringBuilder();
+            int index = 0;
+
+            while (index < text.Length)
+            {
+                int endIndex = index + max;
+
+                if (endIndex >= text.Length)
+                {
+                    endIndex = text.Length;
+                }
+                    
+                else
+                {
+                    while (endIndex > index && !char.IsWhiteSpace(text[endIndex - 1]))
+                    {
+                        endIndex--;
+                    }
+                }
+
+                formattedText.Append(text.Substring(index, endIndex - index).Trim());
+
+                if (endIndex < text.Length)
+                {
+                    formattedText.AppendLine();
+                }
+                    
+                index = endIndex;
+            }
+
+            return formattedText.ToString();
         }
 
         private void buttonClose_Click(object sender, EventArgs e)
@@ -50,16 +90,15 @@ namespace OMDb_API_Showcase
             if(textBoxYear.Text.Length != 0)
             {
                 int year = int.Parse(textBoxYear.Text);
-                request += $"?y={year}";
+                request += $"&y={year}";
             }
 
             if(comboBoxType.SelectedIndex != -1)
             {
                 string str = (string)comboBoxType.Items[comboBoxType.SelectedIndex];
                 string result = char.ToLower(str[0]) + str.Substring(1);
-                request += $"?type={result}";
+                request += $"&type={result}";
             }
-
             request += API_KEY;
 
             bool status = await DisplayMovieDetails(request);
@@ -95,7 +134,8 @@ namespace OMDb_API_Showcase
                         labelName.Text = json["Title"].ToString();
                         labelYear.Text = json["Year"].ToString();
                         labelGenres.Text = json["Genre"].ToString();
-                        labelDescription.Text = json["Plot"].ToString();
+
+                        labelDescription.Text = TextFormatting(json["Plot"].ToString(), 40);
 
                         string posterUrl = json["Poster"].ToString();
 
